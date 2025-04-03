@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:blasting",
+  "category": "misc",
+  "ingredient": "minecraft:gray_dye",
+  "result": {
+    "id": "minecraft:light_gray_dye",
+    "components": {
+      "minecraft:item_model": "minebreach:keycard_iron",
+      "minecraft:custom_name": "{\"text\": \"Iron Keycard\", \"italic\": false}",
+      "minecraft:custom_data": {
+        "id": "keycard_iron",
+        "level": 3
+      }
+    }
+  },
+  "cookingtime": 300
+}

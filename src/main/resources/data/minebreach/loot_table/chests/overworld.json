@@ -1,0 +1,49 @@
+{
+  "type": "minecraft:chest",
+  "pools": [
+    {
+      "rolls": 4,
+      "bonus_rolls": 1,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:gray_dye",
+          "weight": 4,
+          "quality": 1,
+          "functions": [
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "minecraft:item_model": "minebreach:keycard_wooden",
+                "minecraft:custom_name": "{\"text\": \"Wooden Keycard\", \"italic\": false}",
+                "minecraft:custom_data": {
+                  "id": "keycard_wooden",
+                  "level": 1
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:wooden_sword",
+          "expand": true,
+          "weight": 1,
+          "quality": 1,
+          "functions": []
+        },
+        {
+          "type": "minecraft:empty",
+          "weight": 10,
+          "quality": 2
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:cobweb",
+          "weight": 15,
+          "quality": 15
+        }
+      ]
+    }
+  ]
+}

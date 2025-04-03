@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:blasting",
+  "category": "misc",
+  "ingredient": "minecraft:green_dye",
+  "result": {
+    "id": "minecraft:black_dye",
+    "components": {
+      "minecraft:item_model": "minebreach:keycard_netherite",
+      "minecraft:custom_name": "{\"text\": \"Netherite Keycard\", \"italic\": false}",
+      "minecraft:custom_data": {
+        "id": "keycard_netherite",
+        "level": 7
+      }
+    }
+  },
+  "cookingtime": 400
+}

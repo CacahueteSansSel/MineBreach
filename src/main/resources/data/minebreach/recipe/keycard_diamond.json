@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:blasting",
+  "category": "misc",
+  "ingredient": "minecraft:orange_dye",
+  "result": {
+    "id": "minecraft:cyan_dye",
+    "components": {
+      "minecraft:item_model": "minebreach:keycard_diamond",
+      "minecraft:custom_name": "{\"text\": \"Diamond Keycard\", \"italic\": false}",
+      "minecraft:custom_data": {
+        "id": "keycard_diamond",
+        "level": 5
+      }
+    }
+  },
+  "cookingtime": 300
+}

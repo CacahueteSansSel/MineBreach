@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:blasting",
+  "category": "misc",
+  "ingredient": "minecraft:brown_dye",
+  "result": {
+    "id": "minecraft:gray_dye",
+    "components": {
+      "minecraft:item_model": "minebreach:keycard_cobblestone",
+      "minecraft:custom_name": "{\"text\": \"Cobblestone Keycard\", \"italic\": false}",
+      "minecraft:custom_data": {
+        "id": "keycard_cobblestone",
+        "level": 2
+      }
+    }
+  },
+  "cookingtime": 300
+}

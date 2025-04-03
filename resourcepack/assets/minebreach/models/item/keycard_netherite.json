@@ -1,0 +1,6 @@
+{
+    "parent": "minebreach:item/keycard",
+    "textures": {
+        "0": "minebreach:item/keycard_netherite"
+    }
+}

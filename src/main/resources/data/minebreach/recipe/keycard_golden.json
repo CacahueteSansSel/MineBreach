@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:blasting",
+  "category": "misc",
+  "ingredient": "minecraft:light_gray_dye",
+  "result": {
+    "id": "minecraft:orange_dye",
+    "components": {
+      "minecraft:item_model": "minebreach:keycard_golden",
+      "minecraft:custom_name": "{\"text\": \"Golden Keycard\", \"italic\": false}",
+      "minecraft:custom_data": {
+        "id": "keycard_golden",
+        "level": 4
+      }
+    }
+  },
+  "cookingtime": 300
+}

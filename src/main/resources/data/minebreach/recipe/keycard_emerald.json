@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:blasting",
+  "category": "misc",
+  "ingredient": "minecraft:cyan_dye",
+  "result": {
+    "id": "minecraft:green_dye",
+    "components": {
+      "minecraft:item_model": "minebreach:keycard_emerald",
+      "minecraft:custom_name": "{\"text\": \"Emerald Keycard\", \"italic\": false}",
+      "minecraft:custom_data": {
+        "id": "keycard_emerald",
+        "level": 6
+      }
+    }
+  },
+  "cookingtime": 300
+}

@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "id": "minebreach",
+  "version": "${version}",
+
+  "name": "MineBreach",
+  "description": "",
+  "authors": [],
+  "contact": {},
+
+  "license": "All-Rights-Reserved",
+  "icon": "assets/minebreach/icon.png",
+
+  "environment": "server",
+  "entrypoints": {
+    "main": ["dev.cacahuete.minebreach.Minebreach"]
+  },
+
+  "mixins": [
+    "minebreach.mixins.json"
+    ,{
+      "config": "minebreach.client.mixins.json",
+      "environment": "client"
+    }
+  ],
+
+  "depends": {
+    "fabricloader": ">=${loader_version}",
+    "fabric": "*",
+    "minecraft": "${minecraft_version}"
+  }
+}
