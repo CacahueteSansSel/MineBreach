@@ -59,6 +59,7 @@ public class LaboratoryLayout {
         UpgradeRoom("UPG", "upgrade_room"),
         NitwitSpawn("N", "nitwit_spawn"),
         LibrarianSpawn("L", "librarian_spawn"),
+        NuclearRoom("UR", "nuclear_room"),
         ;
 
         String csvId;
