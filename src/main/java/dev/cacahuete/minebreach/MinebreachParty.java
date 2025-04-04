@@ -79,7 +79,7 @@ public class MinebreachParty {
         sendSystemMessage(1, 4, "Cleaning before generation");
 
         // Clear all entities before generation
-        Box genBounds = Box.enclosing(new BlockPos(0, 0, -16 * 10), new BlockPos(16 * LaboratoryLayout.SIZE, 128, 16 * LaboratoryLayout.SIZE));
+        Box genBounds = Box.enclosing(new BlockPos(-320, 0, -320), new BlockPos(320 * 2, 128, 320));
         for (Entity e : world.getEntitiesByClass(Entity.class, genBounds, e -> !(e instanceof ServerPlayerEntity))) {
             e.discard();
         }
