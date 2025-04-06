@@ -1,5 +1,6 @@
 package dev.cacahuete.minebreach;
 
+import dev.cacahuete.minebreach.roles.GameRole;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.RegistryKeys;
@@ -41,11 +42,20 @@ public class MinebreachController {
         return party;
     }
 
-    public static boolean endPartyForWorld(ServerWorld world) {
+    public static boolean endPartyForWorld(ServerWorld world, GameRole.Team winnerTeam) {
         MinebreachParty party = getPartyForWorld(world);
         if (party == null) return false;
 
-        party.end();
+        party.end(winnerTeam);
+
+        return true;
+    }
+
+    public static boolean stopPartyForWorld(ServerWorld world) {
+        MinebreachParty party = getPartyForWorld(world);
+        if (party == null) return false;
+
+        party.stop();
         parties.remove(world.getRegistryKey());
         partyList.remove(party);
 

@@ -37,6 +37,7 @@ public class MinebreachParty {
     LaboratoryGenerator endGenerator;
     Random rng;
     Dictionary<Integer, ArrayList<BlockPos>> playerSpawnPoints;
+    int endTickTimeout = 100;
     
     public MinebreachParty(ServerWorld world) {
         this.world = world;
@@ -166,12 +167,36 @@ public class MinebreachParty {
         player.networkHandler.sendPacket(new TitleS2CPacket(Text.literal(role.name).formatted(Formatting.BOLD, role.color)));
     }
 
-    public void end() {
+    public void stop() {
         for (ServerPlayerEntity player : players) {
             removePlayer(player);
         }
 
         players.clear();
+    }
+
+    public void end(GameRole.Team winnerTeam) {
+        Text title = Text.of("Unknown winners");
+        Text subtitle = Text.of("The party is ending in 5 seconds");
+
+        switch (winnerTeam) {
+            case Humans -> {
+                title = Text.literal("The humans won").formatted(Formatting.GOLD);
+            }
+            case Creatures -> {
+                title = Text.literal("The creatures won").formatted(Formatting.RED);
+            }
+            case Insurgents -> {
+                title = Text.literal("The insurgents won").formatted(Formatting.GREEN);
+            }
+        }
+
+        for (ServerPlayerEntity player : players) {
+            player.networkHandler.sendPacket(new SubtitleS2CPacket(subtitle));
+            player.networkHandler.sendPacket(new TitleS2CPacket(title));
+        }
+
+        gameState = State.Ended;
     }
 
     public void removePlayer(ServerPlayerEntity player) {
@@ -188,7 +213,20 @@ public class MinebreachParty {
     }
 
     public void tick() {
-
+        switch (gameState) {
+            case WaitingForPlayers -> {
+                // todo ?
+            }
+            case InGame -> {
+                // todo ?
+            }
+            case Ended -> {
+                endTickTimeout--;
+                if (endTickTimeout <= 0) {
+                    MinebreachController.stopPartyForWorld(world);
+                }
+            }
+        }
     }
 
     public enum State {

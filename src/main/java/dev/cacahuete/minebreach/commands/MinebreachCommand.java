@@ -4,9 +4,9 @@ import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import dev.cacahuete.minebreach.MinebreachController;
 import dev.cacahuete.minebreach.MinebreachParty;
-import dev.cacahuete.minebreach.core.DelayedTaskScheduler;
 import dev.cacahuete.minebreach.inventory.CustomCreativeInventory;
 import dev.cacahuete.minebreach.laboratory.LaboratoryLayout;
+import dev.cacahuete.minebreach.roles.GameRole;
 import dev.cacahuete.minebreach.roles.Roles;
 import net.minecraft.block.Block;
 import net.minecraft.block.Blocks;
@@ -44,7 +44,7 @@ public class MinebreachCommand {
 
                                             MinebreachParty party = MinebreachController.getPartyForWorld(partyWorld);
                                             if (party != null) {
-                                                context.getSource().sendError(Text.literal("A party is already running ! Use /minebreach party end to end the party"));
+                                                context.getSource().sendError(Text.literal("A party is already running ! Use /minebreach party end to end the party (gracefully)"));
 
                                                 return 2;
                                             }
@@ -72,7 +72,27 @@ public class MinebreachCommand {
                                         return 2;
                                     }
 
-                                    if (MinebreachController.endPartyForWorld(partyWorld)) {
+                                    if (MinebreachController.endPartyForWorld(partyWorld, GameRole.Team.Humans)) {
+                                        context.getSource().sendFeedback(() -> Text.literal("Ended the Minebreach party on " + partyWorld.getRegistryKey().getValue()), true);
+                                    } else {
+                                        context.getSource().sendError(Text.literal("Failed to end the party"));
+
+                                        return 2;
+                                    }
+
+                                    return 1;
+                                }))
+                        .then(CommandManager.literal("stop")
+                                .executes(context -> {
+                                    ServerWorld partyWorld = (ServerWorld) MinebreachController.getMainGameWorld(context.getSource().getServer());
+                                    MinebreachParty party = MinebreachController.getPartyForWorld(partyWorld);
+                                    if (party == null) {
+                                        context.getSource().sendError(Text.literal("There isn't any party running ! Use /minebreach party start to start a party"));
+
+                                        return 2;
+                                    }
+
+                                    if (MinebreachController.stopPartyForWorld(partyWorld)) {
                                         context.getSource().sendFeedback(() -> Text.literal("Ended the Minebreach party on " + partyWorld.getRegistryKey().getValue()), true);
                                     } else {
                                         context.getSource().sendError(Text.literal("Failed to end the party"));
