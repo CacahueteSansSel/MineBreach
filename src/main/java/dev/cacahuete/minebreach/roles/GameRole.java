@@ -73,22 +73,6 @@ public class GameRole {
         return this;
     }
 
-    public boolean addTeam(MinecraftServer server) {
-        Scoreboard scoreboard = server.getScoreboard();
-        if (scoreboard.getTeam("mb-" + id) != null)
-            return false;
-
-        var team = scoreboard.addTeam("mb-" + id);
-        team.setDisplayName(Text.literal(name));
-        team.setColor(color);
-        team.setCollisionRule(AbstractTeam.CollisionRule.PUSH_OWN_TEAM);
-        team.setFriendlyFireAllowed(false);
-        team.setNameTagVisibilityRule(AbstractTeam.VisibilityRule.NEVER);
-        team.setPrefix(Text.literal("[" + name + "] "));
-
-        return true;
-    }
-
     public void addCosmetics(ServerPlayerEntity player) {
         if (hasCustomHead) {
             ItemStack head;
@@ -112,7 +96,7 @@ public class GameRole {
         addCosmetics(player);
 
         if (spawnKitLootTable.isPresent()) {
-            // Minecraft's code is so overcomplicated that running the loot command from the code is the easy way to
+            // Minecraft's code is so overcomplicated that running the loot command from the code is the easiest way to
             // do this
             player.getServer().getCommandManager()
                     .executeWithPrefix(player.getServer().getCommandSource(),
@@ -121,8 +105,37 @@ public class GameRole {
     }
 
     public static enum Team {
-        Special,
-        Humans,
-        Creatures
+        Special("special", "Special"),
+        Humans("humans", "Humans"),
+        Creatures("creatures", "Creatures"),
+        Insurgents("insurgents", "Insurgents");
+
+        final String displayName;
+        final String slug;
+        final String teamId;
+
+        public String getSlug() {
+            return slug;
+        }
+
+        public String getTeamId() {
+            return teamId;
+        }
+
+        Team(String slug, String displayName) {
+            this.slug = slug;
+            this.displayName = displayName;
+            this.teamId = "mb-t-" + slug;
+        }
+
+        public void addTeam(MinecraftServer server) {
+            Scoreboard scoreboard = server.getScoreboard();
+            net.minecraft.scoreboard.Team team = scoreboard.addTeam(teamId);
+
+            team.setDisplayName(Text.literal(displayName));
+            team.setColor(Formatting.WHITE);
+            team.setFriendlyFireAllowed(false);
+            team.setNameTagVisibilityRule(AbstractTeam.VisibilityRule.ALWAYS);
+        }
     }
 }

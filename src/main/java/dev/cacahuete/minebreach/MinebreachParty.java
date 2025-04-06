@@ -15,6 +15,7 @@ import net.minecraft.scoreboard.Scoreboard;
 import net.minecraft.scoreboard.Team;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.math.BlockPos;
@@ -56,6 +57,10 @@ public class MinebreachParty {
         }
     }
 
+    public boolean isPlayerInParty(ServerPlayerEntity player) {
+        return players.contains(player);
+    }
+
     public void assignPlayerRoles() {
         Integer[] array = new Integer[players.size()];
 
@@ -63,11 +68,15 @@ public class MinebreachParty {
             array[0] = Roles.LIBRARIAN.index;
         } else {
             int monsterCount = Math.min(array.length / 2, 4);
+
+            // Spawn monsters/creatures
             for (int i = 0; i < monsterCount; i++) {
                 array[i] = Roles.getRandomFromTeamNaturallySpawnable(rng, GameRole.Team.Creatures).index;
             }
+
+            // Spawn humans
             for (int i = monsterCount; i < array.length; i++) {
-                array[i] = rng.nextBetween(2, 4);
+                array[i] = Roles.getRandomFromTeamNaturallySpawnable(rng, GameRole.Team.Humans).index;
             }
         }
 
@@ -119,7 +128,8 @@ public class MinebreachParty {
 
             player.teleportTo(new TeleportTarget(world, pos.toCenterPos(), Vec3d.ZERO, 0f, 0f, TeleportTarget.NO_OP));
             player.changeGameMode(GameMode.ADVENTURE);
-            player.addStatusEffect(new StatusEffectInstance(StatusEffects.SATURATION, StatusEffectInstance.INFINITE, 1));
+            player.addStatusEffect(new StatusEffectInstance(StatusEffects.SATURATION, StatusEffectInstance.INFINITE, 1, true, false));
+            player.playSound(SoundEvents.BLOCK_BELL_RESONATE);
         }
     }
 
@@ -141,7 +151,7 @@ public class MinebreachParty {
 
         GameRole role = Roles.get(roleId);
         Scoreboard scoreboard = world.getScoreboard();
-        Team roleTeam = scoreboard.getTeam("mb-" + role.id);
+        Team roleTeam = scoreboard.getTeam(role.team.getTeamId());
         Team currentPlayerTeam = scoreboard.getScoreHolderTeam(player.getNameForScoreboard());
 
         if (currentPlayerTeam != roleTeam) {
@@ -157,16 +167,28 @@ public class MinebreachParty {
     }
 
     public void end() {
+        for (ServerPlayerEntity player : players) {
+            removePlayer(player);
+        }
+
+        players.clear();
+    }
+
+    public void removePlayer(ServerPlayerEntity player) {
         ServerWorld overworld = world.getServer().getWorld(ServerWorld.OVERWORLD);
         BlockPos worldSpawn = overworld.getSpawnPos();
         Scoreboard scoreboard = overworld.getServer().getScoreboard();
 
-        for (ServerPlayerEntity player : players) {
-            player.teleportTo(new TeleportTarget(overworld, worldSpawn.toCenterPos(), Vec3d.ZERO, 0f, 0f, TeleportTarget.NO_OP));
-            player.getInventory().clear();
-            player.removeStatusEffect(StatusEffects.SATURATION);
-            scoreboard.removeScoreHolderFromTeam(player.getNameForScoreboard(), scoreboard.getScoreHolderTeam(player.getNameForScoreboard()));
-        }
+        player.teleportTo(new TeleportTarget(overworld, worldSpawn.toCenterPos(), Vec3d.ZERO, 0f, 0f, TeleportTarget.NO_OP));
+        player.getInventory().clear();
+        player.removeStatusEffect(StatusEffects.SATURATION);
+        scoreboard.removeScoreHolderFromTeam(player.getNameForScoreboard(), scoreboard.getScoreHolderTeam(player.getNameForScoreboard()));
+
+        players.remove(player);
+    }
+
+    public void tick() {
+
     }
 
     public enum State {

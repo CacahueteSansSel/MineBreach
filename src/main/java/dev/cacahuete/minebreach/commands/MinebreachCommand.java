@@ -24,6 +24,7 @@ import java.util.Objects;
 public class MinebreachCommand {
     public static void register(CommandDispatcher<ServerCommandSource> dispatcher) {
         dispatcher.register(CommandManager.literal("minebreach")
+                .requires(source -> source.hasPermissionLevel(2))
                 .then(CommandManager.literal("inventory")
                         .executes(context -> {
                             if (!context.getSource().isExecutedByPlayer()) {

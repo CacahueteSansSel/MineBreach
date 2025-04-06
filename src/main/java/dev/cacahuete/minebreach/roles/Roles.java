@@ -17,7 +17,7 @@ public class Roles {
     public static final GameRole LIBRARIAN = add(new GameRole("librarian", "Librarian", Formatting.YELLOW, GameRole.Team.Humans, "Escape the building !", true).withCustomHeadModel().withSpawnKitLootTable());
     public static final GameRole PLAYER = add(new GameRole("player", "Player", Formatting.AQUA, GameRole.Team.Humans, "Save the villagers while avoiding", false));
     public static final GameRole CREEPER = add(new GameRole("creeper", "Creeper", Formatting.RED, GameRole.Team.Creatures, "Kill anyone and (maybe) coop with the Pillagers", true).withCustomHead(Items.CREEPER_HEAD));
-    public static final GameRole PILLAGER = add(new GameRole("pillager", "Pillager", Formatting.GREEN, GameRole.Team.Creatures, "Coop with the monsters and save ...", false).withCustomHeadModel().withSpawnKitLootTable());
+    public static final GameRole PILLAGER = add(new GameRole("pillager", "Pillager", Formatting.GREEN, GameRole.Team.Insurgents, "Coop with the monsters and save ...", false).withCustomHeadModel().withSpawnKitLootTable());
     public static final GameRole ENDERMAN = add(new GameRole("enderman", "Enderman", Formatting.RED, GameRole.Team.Creatures, "Kill anyone and (maybe) coop with the Pillagers", true).withCustomHeadModel().withSpawnKitLootTable());
 
     private static GameRole add(GameRole role) {
@@ -28,7 +28,10 @@ public class Roles {
     }
 
     public static void registerTeams(MinecraftServer server) {
-        for (GameRole role : ROLES) role.addTeam(server);
+        for (GameRole.Team team : GameRole.Team.values()) {
+            if (server.getScoreboard().getTeam(team.slug) == null)
+                team.addTeam(server);
+        }
     }
 
     public static GameRole get(int index) {

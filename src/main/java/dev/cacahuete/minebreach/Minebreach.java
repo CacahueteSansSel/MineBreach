@@ -20,6 +20,7 @@ public class Minebreach implements ModInitializer {
 
         CustomItems.register();
         TickScheduler.init();
+        MinebreachController.init();
 
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
             MinebreachCommand.register(dispatcher);

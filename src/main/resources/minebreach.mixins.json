@@ -9,6 +9,8 @@
   "server": [
     "ItemMixin",
     "BlockItemMixin",
-    "DoorBlockMixin"
+    "DoorBlockMixin",
+    "ServerPlayerEntityMixin",
+    "PlayerManagerMixin"
   ]
 }
