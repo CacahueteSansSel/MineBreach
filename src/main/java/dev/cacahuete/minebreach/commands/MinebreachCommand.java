@@ -145,6 +145,14 @@ public class MinebreachCommand {
 
                                     return 1;
                                 }))
+                        .then(CommandManager.literal("build-exterior")
+                                .executes(context -> {
+                                    MinebreachController.buildExterior(context.getSource().getServer());
+
+                                    context.getSource().sendFeedback(() -> Text.literal("Built Exterior"), true);
+
+                                    return 1;
+                                }))
                 )
         );
     }

@@ -6,7 +6,10 @@ import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.RegistryKeys;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.structure.StructurePlacementData;
+import net.minecraft.structure.StructureTemplateManager;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 
 import java.util.ArrayList;
@@ -60,6 +63,26 @@ public class MinebreachController {
         partyList.remove(party);
 
         return true;
+    }
+
+    public static void buildExterior(MinecraftServer server) {
+        ServerWorld world = (ServerWorld)getMainGameWorld(server);
+        StructureTemplateManager structureManager = world.getStructureTemplateManager();
+        if (world == null) return;
+
+        BlockPos position = new BlockPos(-3, 47, 237);
+        for (int x = 0; x < 4; x++) {
+            Identifier structureId = Identifier.of("minebreach", "exterior/e_" + x);
+
+            int finalX = x;
+            structureManager.getTemplate(structureId).ifPresent(template -> {
+                template.place(world, position.add(finalX * 48, 0, 0), BlockPos.ORIGIN, new StructurePlacementData(), world.getRandom(), 2);
+            });
+        }
+
+        structureManager.getTemplate(Identifier.of("minebreach:exterior/e_3_1")).ifPresent(template -> {
+            template.place(world, position.add(3 * 48, 0, -48), BlockPos.ORIGIN, new StructurePlacementData(), world.getRandom(), 2);
+        });
     }
 
     static void tick(MinecraftServer server) {
