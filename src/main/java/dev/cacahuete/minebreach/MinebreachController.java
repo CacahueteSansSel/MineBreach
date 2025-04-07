@@ -63,7 +63,8 @@ public class MinebreachController {
     }
 
     static void tick(MinecraftServer server) {
-        for (MinebreachParty party : partyList) {
+        for (int i = 0, partyListSize = partyList.size(); i < partyListSize; i++) {
+            MinebreachParty party = partyList.get(i);
             party.tick();
         }
     }

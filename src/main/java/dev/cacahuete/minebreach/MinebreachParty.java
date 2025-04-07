@@ -169,7 +169,7 @@ public class MinebreachParty {
 
     public void stop() {
         for (ServerPlayerEntity player : players) {
-            removePlayer(player);
+            removePlayer(player, false);
         }
 
         players.clear();
@@ -199,7 +199,7 @@ public class MinebreachParty {
         gameState = State.Ended;
     }
 
-    public void removePlayer(ServerPlayerEntity player) {
+    public void removePlayer(ServerPlayerEntity player, boolean removeFromList) {
         ServerWorld overworld = world.getServer().getWorld(ServerWorld.OVERWORLD);
         BlockPos worldSpawn = overworld.getSpawnPos();
         Scoreboard scoreboard = overworld.getServer().getScoreboard();
@@ -209,7 +209,7 @@ public class MinebreachParty {
         player.removeStatusEffect(StatusEffects.SATURATION);
         scoreboard.removeScoreHolderFromTeam(player.getNameForScoreboard(), scoreboard.getScoreHolderTeam(player.getNameForScoreboard()));
 
-        players.remove(player);
+        if (removeFromList) players.remove(player);
     }
 
     public void tick() {

@@ -16,7 +16,7 @@ public class PlayerManagerMixin {
         MinebreachParty party = MinebreachController.getPartyForWorld(player.getServerWorld());
         if (party == null || !party.isPlayerInParty(player)) return;
 
-        party.removePlayer(player);
+        party.removePlayer(player, true);
         System.out.println("[Minebreach] Player " + player.getDisplayName().getString() + " disconnected : removed from Minebreach party");
     }
 }
