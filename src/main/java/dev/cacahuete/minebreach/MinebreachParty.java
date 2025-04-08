@@ -82,7 +82,7 @@ public class MinebreachParty {
         }
 
         for (int i = 0; i < array.length; i++)
-            setPlayerRole(players.get(i), array[i]);
+            setPlayerRole(players.get(i), array[i], true);
     }
 
     public void generateAndSpawnPlayers(BlockPos origin) {
@@ -96,6 +96,15 @@ public class MinebreachParty {
 
         // Create the player spawn point table
         playerSpawnPoints = new Hashtable<>();
+        for (GameRole role : Roles.ROLES) {
+            if (role.staticSpawnPoints != null && !role.staticSpawnPoints.isEmpty()) {
+                ArrayList<BlockPos> spawnPoints = new ArrayList<>();
+                for (BlockPos pos : role.staticSpawnPoints) {
+                    spawnPoints.add(pos.add(origin));
+                }
+                playerSpawnPoints.put(role.index, spawnPoints);
+            }
+        }
 
         // Generate all floors
         sendSystemMessage(2, 4, "Generating Floor OVERWORLD");
@@ -119,15 +128,6 @@ public class MinebreachParty {
         assignPlayerRoles();
 
         for (ServerPlayerEntity player : players) {
-            int roleIndex = getPlayerRole(player);
-            ArrayList<BlockPos> rolePositions = playerSpawnPoints.get(roleIndex);
-            if (rolePositions == null || rolePositions.isEmpty()) rolePositions = playerSpawnPoints.get(2);
-            if (rolePositions == null || rolePositions.isEmpty()) continue;
-
-            BlockPos pos = rolePositions.get(rng.nextInt(rolePositions.size()));
-            rolePositions.remove(pos);
-
-            player.teleportTo(new TeleportTarget(world, pos.toCenterPos(), Vec3d.ZERO, 0f, 0f, TeleportTarget.NO_OP));
             player.changeGameMode(GameMode.ADVENTURE);
             player.addStatusEffect(new StatusEffectInstance(StatusEffects.SATURATION, StatusEffectInstance.INFINITE, 1, true, false));
             player.playSound(SoundEvents.BLOCK_BELL_RESONATE);
@@ -147,7 +147,7 @@ public class MinebreachParty {
         return roleMap.get(player.getUuid());
     }
 
-    public void setPlayerRole(ServerPlayerEntity player, int roleId) {
+    public void setPlayerRole(ServerPlayerEntity player, int roleId, boolean teleportToSpawnPoint) {
         roleMap.put(player.getUuid(), roleId);
 
         GameRole role = Roles.get(roleId);
@@ -163,6 +163,18 @@ public class MinebreachParty {
         }
 
         role.postProcessPlayer(player);
+        if (teleportToSpawnPoint) {
+            int roleIndex = getPlayerRole(player);
+            ArrayList<BlockPos> rolePositions = playerSpawnPoints.get(roleIndex);
+            if (rolePositions == null || rolePositions.isEmpty()) rolePositions = playerSpawnPoints.get(2);
+            if (rolePositions != null && !rolePositions.isEmpty()) {
+                BlockPos pos = rolePositions.get(rng.nextInt(rolePositions.size()));
+                rolePositions.remove(pos);
+
+                player.teleportTo(new TeleportTarget(world, pos.toCenterPos(), Vec3d.ZERO, 0f, 0f, TeleportTarget.NO_OP));
+            }
+        }
+
         player.networkHandler.sendPacket(new SubtitleS2CPacket(Text.literal(role.description)));
         player.networkHandler.sendPacket(new TitleS2CPacket(Text.literal(role.name).formatted(Formatting.BOLD, role.color)));
     }
@@ -210,6 +222,15 @@ public class MinebreachParty {
         scoreboard.removeScoreHolderFromTeam(player.getNameForScoreboard(), scoreboard.getScoreHolderTeam(player.getNameForScoreboard()));
 
         if (removeFromList) players.remove(player);
+    }
+
+    public void upgradePlayer(ServerPlayerEntity player) {
+        int roleId = getPlayerRole(player);
+        GameRole role = Roles.get(roleId);
+
+        if (role == null || role.upgradesToId.isEmpty()) return;
+
+        setPlayerRole(player, Objects.requireNonNull(Roles.get(role.upgradesToId.get())).index, true);
     }
 
     public void tick() {

@@ -117,7 +117,7 @@ public class MinebreachCommand {
                                             }
 
                                             for (ServerPlayerEntity player : players)
-                                                party.setPlayerRole(player, roleId);
+                                                party.setPlayerRole(player, roleId, false);
 
                                             context.getSource().sendFeedback(() -> Text.literal("Set role of " + players.size() + " player(s) to #" + roleId + " (" + Roles.get(roleId).name + ")"), true);
 

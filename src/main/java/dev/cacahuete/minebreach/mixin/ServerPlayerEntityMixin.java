@@ -24,7 +24,7 @@ public class ServerPlayerEntityMixin {
         ServerPlayerEntity attacker = damageSource.getAttacker() instanceof ServerPlayerEntity p ? p : null;
         if (!party.isPlayerInParty(attacker)) attacker = null;
 
-        party.setPlayerRole(player, Roles.SPECTATOR.index);
+        party.setPlayerRole(player, Roles.SPECTATOR.index, false);
         player.changeGameMode(GameMode.SPECTATOR);
         player.setHealth(player.defaultMaxHealth);
         if (attacker != null) player.networkHandler.sendPacket(new SetCameraEntityS2CPacket(attacker));

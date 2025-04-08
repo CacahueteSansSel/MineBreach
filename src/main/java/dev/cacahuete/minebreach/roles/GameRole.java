@@ -26,9 +26,9 @@ import net.minecraft.util.DyeColor;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.context.ContextParameterMap;
+import net.minecraft.util.math.BlockPos;
 
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 public class GameRole {
     public int index;
@@ -41,6 +41,8 @@ public class GameRole {
     public boolean naturallySpawns;
     public Optional<Item> headItem = Optional.empty();
     Optional<Identifier> spawnKitLootTable = Optional.empty();
+    public Optional<String> upgradesToId = Optional.empty();
+    public ArrayList<BlockPos> staticSpawnPoints = new ArrayList<>();
 
     public GameRole(String id, String name, Formatting color, Team team, String description, boolean naturallySpawns) {
         this.id = id;
@@ -49,6 +51,23 @@ public class GameRole {
         this.team = team;
         this.description = description;
         this.naturallySpawns = naturallySpawns;
+    }
+
+    public GameRole withStaticSpawnPoint(BlockPos pos) {
+        staticSpawnPoints.add(pos);
+
+        return this;
+    }
+
+    public GameRole withStaticSpawnPoints(List<BlockPos> positions) {
+        staticSpawnPoints.addAll(positions);
+
+        return this;
+    }
+
+    public GameRole upgradesTo(String id) {
+        upgradesToId = Optional.of(id);
+        return this;
     }
 
     public GameRole withSpawnKitLootTable(Identifier lootTableIdentifier) {
