@@ -201,6 +201,9 @@ public class MinebreachParty {
             case Insurgents -> {
                 title = Text.literal("The insurgents won").formatted(Formatting.GREEN);
             }
+            default -> {
+                title = Text.literal("This is a tie").formatted(Formatting.WHITE);
+            }
         }
 
         for (ServerPlayerEntity player : players) {
@@ -233,14 +236,41 @@ public class MinebreachParty {
         setPlayerRole(player, Objects.requireNonNull(Roles.get(role.upgradesToId.get())).index, true);
     }
 
+    void checkForPartyEnd() {
+        if (players.isEmpty()) {
+            end(null);
+            return;
+        }
+        if (players.size() < 2) return;
+
+        int creaturesCount = 0;
+        int humansCount = 0;
+        int insurgentsCount = 0;
+        for (ServerPlayerEntity player : players) {
+            GameRole role = Roles.get(getPlayerRole(player));
+
+            switch (role.team) {
+                case Creatures -> creaturesCount++;
+                case Humans -> humansCount++;
+                case Insurgents -> insurgentsCount++;
+            }
+        }
+
+        if (insurgentsCount == 0 && creaturesCount == 0 && humansCount > 0) {
+            end(GameRole.Team.Humans);
+        } else if (humansCount == 0 && creaturesCount == 0 && insurgentsCount > 0) {
+            end(GameRole.Team.Insurgents);
+        } else if (insurgentsCount == 0 && humansCount == 0 && creaturesCount > 0) {
+            end(GameRole.Team.Creatures);
+        }
+    }
+
     public void tick() {
         switch (gameState) {
             case WaitingForPlayers -> {
                 // todo ?
             }
-            case InGame -> {
-                // todo ?
-            }
+            case InGame -> checkForPartyEnd();
             case Ended -> {
                 endTickTimeout--;
                 if (endTickTimeout <= 0) {

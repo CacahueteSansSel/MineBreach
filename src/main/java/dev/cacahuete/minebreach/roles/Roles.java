@@ -14,7 +14,7 @@ public class Roles {
     public static final ArrayList<GameRole> ROLES = new ArrayList<>();
     public static final GameRole WAITING = add(new GameRole("waiting", "Waiting", Formatting.BLUE, GameRole.Team.Special, "Waiting for players", false));
     public static final GameRole SPECTATOR = add(new GameRole("spectator", "Spectator", Formatting.DARK_GRAY, GameRole.Team.Special, "Spectate other players", false));
-    public static final GameRole NITWIT = add(new GameRole("nitwit", "Nitwit", Formatting.GOLD, GameRole.Team.Humans, "Escape the building (but with nothing) !", true).withCustomHeadModel().withSpawnKitLootTable().upgradesTo("pillager"));
+    public static final GameRole NITWIT = add(new GameRole("nitwit", "Nitwit", Formatting.GOLD, GameRole.Team.Insurgents, "Escape the building (but with nothing) !", true).withCustomHeadModel().withSpawnKitLootTable().upgradesTo("pillager"));
     public static final GameRole LIBRARIAN = add(new GameRole("librarian", "Librarian", Formatting.YELLOW, GameRole.Team.Humans, "Escape the building !", true).withCustomHeadModel().withSpawnKitLootTable().upgradesTo("player"));
     public static final GameRole PLAYER = add(new GameRole("player", "Player", Formatting.AQUA, GameRole.Team.Humans, "Save the villagers while avoiding", false)
             .withStaticSpawnPoints(List.of(new BlockPos(166, 52, 257), new BlockPos(166, 52, 260), new BlockPos(164, 52, 257), new BlockPos(164, 52, 260))));
