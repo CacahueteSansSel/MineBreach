@@ -22,6 +22,7 @@ public class CustomItems {
     public static final CustomItem IRON_DOOR_KEYCARD_4 = add(new KeycardDoorCustomItem(4));
     public static final CustomItem IRON_DOOR_KEYCARD_5 = add(new KeycardDoorCustomItem(5));
     public static final CustomItem IRON_DOOR_KEYCARD_6 = add(new KeycardDoorCustomItem(6));
+    public static final CustomItem ABILITY_CREEPER_EXPLODE = add(new AbilityCreeperExplodeCustomItem());
 
     private static CustomItem add(CustomItem item) {
         ITEMS.add(item);
