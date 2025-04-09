@@ -4,6 +4,7 @@ import dev.cacahuete.minebreach.MinebreachController;
 import dev.cacahuete.minebreach.MinebreachParty;
 import dev.cacahuete.minebreach.items.CustomItem;
 import dev.cacahuete.minebreach.items.CustomItems;
+import dev.cacahuete.minebreach.roles.GameRole;
 import dev.cacahuete.minebreach.roles.Roles;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.NbtComponent;
@@ -42,6 +43,18 @@ public class ServerPlayerEntityMixin {
     @Inject(method = "dropItem", at = @At("HEAD"), cancellable = true)
     public void dropItem(ItemStack stack, boolean throwRandomly, boolean retainOwnership, CallbackInfoReturnable<ItemEntity> cir) {
         ServerPlayerEntity player = (ServerPlayerEntity) (Object) this;
+        MinebreachParty party = MinebreachController.getPartyForWorld(player.getServerWorld());
+        if (party == null || !party.isPlayerInParty(player)) return;
+
+        if (Roles.get(party.getPlayerRole(player)).team == GameRole.Team.Creatures) {
+            if (!player.isDead()) player.giveItemStack(stack.copy());
+
+            cir.setReturnValue(null);
+            cir.cancel();
+
+            return;
+        }
+
         NbtComponent nbt = stack.get(DataComponentTypes.CUSTOM_DATA);
         if (nbt == null) return; // Not a custom item
 
