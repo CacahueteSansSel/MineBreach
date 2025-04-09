@@ -12,6 +12,7 @@
     "DoorBlockMixin",
     "ServerPlayerEntityMixin",
     "PlayerManagerMixin",
-    "EndPortalBlockMixin"
+    "EndPortalBlockMixin",
+    "ItemEntityMixin"
   ]
 }

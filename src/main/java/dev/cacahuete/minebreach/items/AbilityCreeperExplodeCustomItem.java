@@ -50,4 +50,9 @@ public class AbilityCreeperExplodeCustomItem extends CustomItem {
         world.createExplosion(user, Explosion.createDamageSource(world, user), EXPLOSION_BEHAVIOR, user.getX(), user.getY(), user.getZ(), 3.0F, false, World.ExplosionSourceType.MOB);
         user.getItemCooldownManager().set(stack, 100);
     }
+
+    @Override
+    public boolean canBeDropped() {
+        return false;
+    }
 }

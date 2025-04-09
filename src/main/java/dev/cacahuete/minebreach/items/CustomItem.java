@@ -24,6 +24,9 @@ public abstract class CustomItem {
     public abstract Item getBaseItem();
     public abstract String getTitle();
     public abstract String getId();
+    public boolean canBeDropped() {
+        return true;
+    }
 
     public ItemStack buildStackCustomPass(ItemStack stack) {
         return stack;
