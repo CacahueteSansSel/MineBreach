@@ -2,6 +2,11 @@ package dev.cacahuete.minebreach.roles;
 
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.minecraft.component.DataComponentTypes;
+import net.minecraft.enchantment.Enchantment;
+import net.minecraft.enchantment.EnchantmentHelper;
+import net.minecraft.enchantment.EnchantmentLevelEntry;
+import net.minecraft.enchantment.Enchantments;
+import net.minecraft.enchantment.provider.EnchantmentProviders;
 import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -12,9 +17,12 @@ import net.minecraft.loot.context.LootContext;
 import net.minecraft.loot.context.LootContextParameters;
 import net.minecraft.loot.context.LootContextTypes;
 import net.minecraft.loot.context.LootWorldContext;
+import net.minecraft.predicate.item.EnchantmentsPredicate;
 import net.minecraft.registry.Registries;
+import net.minecraft.registry.Registry;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.RegistryKeys;
+import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.scoreboard.AbstractTeam;
 import net.minecraft.scoreboard.Scoreboard;
 import net.minecraft.scoreboard.Team;
@@ -106,6 +114,10 @@ public class GameRole {
             }
 
             player.equipStack(EquipmentSlot.HEAD, head);
+
+            player.getServer().getCommandManager()
+                    .executeWithPrefix(player.getServer().getCommandSource(),
+                            "loot give " + player.getCommandSource().getName() + " loot " + spawnKitLootTable.get());
         }
     }
 
