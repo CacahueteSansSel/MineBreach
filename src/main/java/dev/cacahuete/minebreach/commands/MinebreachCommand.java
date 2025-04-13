@@ -1,21 +1,29 @@
 package dev.cacahuete.minebreach.commands;
 
 import com.mojang.brigadier.CommandDispatcher;
+import com.mojang.brigadier.arguments.BoolArgumentType;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import dev.cacahuete.minebreach.MinebreachController;
 import dev.cacahuete.minebreach.MinebreachParty;
 import dev.cacahuete.minebreach.inventory.CustomCreativeInventory;
+import dev.cacahuete.minebreach.items.CustomItem;
+import dev.cacahuete.minebreach.items.CustomItems;
+import dev.cacahuete.minebreach.items.KeycardCustomItem;
 import dev.cacahuete.minebreach.laboratory.LaboratoryLayout;
 import dev.cacahuete.minebreach.roles.GameRole;
 import dev.cacahuete.minebreach.roles.Roles;
 import net.minecraft.block.Block;
 import net.minecraft.block.Blocks;
 import net.minecraft.command.argument.EntityArgumentType;
+import net.minecraft.component.DataComponentTypes;
+import net.minecraft.component.type.NbtComponent;
+import net.minecraft.item.ItemStack;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
+import net.minecraft.util.Formatting;
 import net.minecraft.util.math.BlockPos;
 
 import java.util.Collection;
@@ -124,6 +132,120 @@ public class MinebreachCommand {
                                             return 1;
                                         })
                                 ))
+                )
+                .then(CommandManager.literal("nuclear")
+                        .then(CommandManager.literal("toggle")
+                                .then(CommandManager.argument("recipient", EntityArgumentType.player())
+                                        .executes(context -> {
+                                            ServerWorld partyWorld = (ServerWorld) MinebreachController.getMainGameWorld(context.getSource().getServer());
+                                            ServerPlayerEntity player = EntityArgumentType.getPlayer(context, "recipient");
+                                            MinebreachParty party = MinebreachController.getPartyForWorld(partyWorld);
+                                            if (party == null) {
+                                                context.getSource().sendError(Text.literal("You must create a party first for this world ! Use /minebreach party start"));
+
+                                                return 2;
+                                            }
+
+                                            GameRole playerRole = Roles.get(party.getPlayerRole(player));
+                                            if (playerRole.team == GameRole.Team.Creatures) {
+                                                if (party.getNuclearBombState() == MinebreachParty.NuclearBombState.Ticking)
+                                                    party.stopNuclearBomb();
+
+                                                return 1;
+                                            }
+                                            ItemStack currentPlayerItem = player.getStackInHand(player.getActiveHand());
+                                            NbtComponent itemNbt = currentPlayerItem.get(DataComponentTypes.CUSTOM_DATA);
+                                            if (itemNbt == null) {
+                                                player.sendMessage(Text.literal("Access denied").formatted(Formatting.RED), true);
+                                                return 2;
+                                            }
+
+                                            String id = itemNbt.copyNbt().getString("id");
+                                            CustomItem item = CustomItems.get(id);
+                                            if (!(item instanceof KeycardCustomItem keycard) || keycard.getLevel() < 6) {
+                                                player.sendMessage(Text.literal("Access denied").formatted(Formatting.RED), true);
+                                                return 2;
+                                            }
+
+                                            switch (party.getNuclearBombState()) {
+                                                case Off -> {
+                                                    party.startNuclearBomb(player);
+                                                }
+                                                case Ticking -> {
+                                                    party.stopNuclearBomb();
+                                                }
+                                                case Exploded -> {
+                                                    player.sendMessage(Text.literal("The Nuclear Bomb already detonated"), true);
+                                                    return 2;
+                                                }
+                                            }
+
+                                            return 1;
+                                        }))
+                        )
+                        .then(CommandManager.literal("stop")
+                                .then(CommandManager.argument("recipient", EntityArgumentType.player())
+                                        .executes(context -> {
+                                            ServerWorld partyWorld = (ServerWorld) MinebreachController.getMainGameWorld(context.getSource().getServer());
+                                            ServerPlayerEntity player = EntityArgumentType.getPlayer(context, "recipient");
+                                            MinebreachParty party = MinebreachController.getPartyForWorld(partyWorld);
+                                            if (party == null) {
+                                                context.getSource().sendError(Text.literal("You must create a party first for this world ! Use /minebreach party start"));
+
+                                                return 2;
+                                            }
+
+                                            switch (party.getNuclearBombState()) {
+                                                case Off -> {
+                                                    player.sendMessage(Text.literal("The Nuclear Bomb is not ongoing"), true);
+                                                    return 2;
+                                                }
+                                                case Ticking -> {
+                                                    party.stopNuclearBomb();
+                                                }
+                                                case Exploded -> {
+                                                    player.sendMessage(Text.literal("The Nuclear Bomb already detonated"), true);
+                                                    return 2;
+                                                }
+                                            }
+
+                                            return 1;
+                                        }))
+                        )
+                        .then(CommandManager.literal("setEnabled")
+                                .then(CommandManager.argument("enabled", BoolArgumentType.bool())
+                                        .executes(context -> {
+                                            ServerWorld partyWorld = (ServerWorld) MinebreachController.getMainGameWorld(context.getSource().getServer());
+                                            boolean enabled = BoolArgumentType.getBool(context, "enabled");
+                                            MinebreachParty party = MinebreachController.getPartyForWorld(partyWorld);
+                                            if (party == null) {
+                                                context.getSource().sendError(Text.literal("You must create a party first for this world ! Use /minebreach party start"));
+
+                                                return 2;
+                                            }
+
+                                            party.setNuclearBombEnabled(enabled);
+
+                                            context.getSource().sendFeedback(() -> Text.literal("Nuclear Bomb is now " + (party.isNuclearBombEnabled() ? "Enabled" : "Disabled")), true);
+
+                                            return 1;
+                                        }))
+                                .then(CommandManager.literal("toggle")
+                                        .executes(context -> {
+                                            ServerWorld partyWorld = (ServerWorld) MinebreachController.getMainGameWorld(context.getSource().getServer());
+                                            MinebreachParty party = MinebreachController.getPartyForWorld(partyWorld);
+                                            if (party == null) {
+                                                context.getSource().sendError(Text.literal("You must create a party first for this world ! Use /minebreach party start"));
+
+                                                return 2;
+                                            }
+
+                                            party.setNuclearBombEnabled(!party.isNuclearBombEnabled());
+
+                                            context.getSource().sendFeedback(() -> Text.literal("Nuclear Bomb is now " + (party.isNuclearBombEnabled() ? "Enabled" : "Disabled")), true);
+
+                                            return 1;
+                                        })))
                 )
                 .then(CommandManager.literal("generation")
                         .then(CommandManager.literal("clean")

@@ -1,5 +1,7 @@
 package dev.cacahuete.minebreach;
 
+import dev.cacahuete.minebreach.core.Shuffler;
+import dev.cacahuete.minebreach.core.TickScheduler;
 import dev.cacahuete.minebreach.laboratory.LaboratoryFloors;
 import dev.cacahuete.minebreach.laboratory.LaboratoryGenerator;
 import dev.cacahuete.minebreach.laboratory.LaboratoryLayout;
@@ -7,17 +9,25 @@ import dev.cacahuete.minebreach.roles.GameRole;
 import dev.cacahuete.minebreach.roles.Roles;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.ItemEntity;
+import net.minecraft.entity.boss.BossBar;
+import net.minecraft.entity.boss.CommandBossBar;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
+import net.minecraft.network.packet.s2c.play.PlaySoundS2CPacket;
+import net.minecraft.network.packet.s2c.play.StopSoundS2CPacket;
 import net.minecraft.network.packet.s2c.play.SubtitleS2CPacket;
 import net.minecraft.network.packet.s2c.play.TitleS2CPacket;
+import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.scoreboard.Scoreboard;
 import net.minecraft.scoreboard.Team;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.sound.SoundCategory;
+import net.minecraft.sound.SoundEvent;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
+import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Box;
 import net.minecraft.util.math.Vec3d;
@@ -38,10 +48,26 @@ public class MinebreachParty {
     Random rng;
     Dictionary<Integer, ArrayList<BlockPos>> playerSpawnPoints;
     int endTickTimeout = 100;
+    boolean nuclearBombEnabled = false;
+    NuclearBombState nuclearBombState = NuclearBombState.Off;
+    int nuclearBombTimeout = 2400;
+    CommandBossBar nuclearBombBossBar;
     
     public MinebreachParty(ServerWorld world) {
         this.world = world;
         this.rng = Random.create();
+
+        nuclearBombBossBar = world.getServer().getBossBarManager().get(Identifier.of("minebreach:nuclear_bomb"));
+        if (nuclearBombBossBar == null) {
+            nuclearBombBossBar = world.getServer().getBossBarManager()
+                    .add(Identifier.of("minebreach:nuclear_bomb"), Text.literal("Nuclear Bomb is Ongoing"));
+            nuclearBombBossBar.setStyle(BossBar.Style.PROGRESS);
+            nuclearBombBossBar.setColor(BossBar.Color.RED);
+            nuclearBombBossBar.setMaxValue(120);
+        }
+        nuclearBombBossBar.clearPlayers();
+        nuclearBombBossBar.setName(Text.literal("Nuclear Bomb is Ongoing"));
+        nuclearBombBossBar.setValue(120);
 
         overworldGenerator = LaboratoryFloors.OVERWORLD.createGenerator();
         netherGenerator = LaboratoryFloors.NETHER.createGenerator();
@@ -62,8 +88,20 @@ public class MinebreachParty {
         return players.contains(player);
     }
 
+    public boolean isNuclearBombEnabled() {
+        return nuclearBombEnabled;
+    }
+
+    public NuclearBombState getNuclearBombState() {
+        return nuclearBombState;
+    }
+
+    public void setNuclearBombEnabled(boolean enabled) {
+        this.nuclearBombEnabled = enabled;
+    }
+
     public void assignPlayerRoles() {
-        Integer[] array = new Integer[players.size()];
+        int[] array = new int[players.size()];
 
         if (array.length == 1) {
             array[0] = Roles.LIBRARIAN.index;
@@ -81,12 +119,14 @@ public class MinebreachParty {
             }
         }
 
+        Shuffler.shuffle(array);
+
         for (int i = 0; i < array.length; i++)
             setPlayerRole(players.get(i), array[i], true);
     }
 
     public void generateAndSpawnPlayers(BlockPos origin) {
-        sendSystemMessage(1, 4, "Cleaning before generation");
+        sendSystemMessage(1, 5, "Cleaning before generation");
 
         // Clear all entities before generation
         Box genBounds = Box.enclosing(new BlockPos(-320, 0, -320), new BlockPos(320 * 2, 128, 320));
@@ -107,14 +147,14 @@ public class MinebreachParty {
         }
 
         // Generate all floors
-        sendSystemMessage(2, 4, "Generating Floor OVERWORLD");
+        sendSystemMessage(2, 5, "Generating Floor OVERWORLD");
         overworldGenerator.generate(origin, rng, world, playerSpawnPoints);
-        sendSystemMessage(3, 4, "Generating Floor NETHER");
+        sendSystemMessage(3, 5, "Generating Floor NETHER");
         netherGenerator.generate(origin.up(12), rng, world, playerSpawnPoints);
-        sendSystemMessage(3, 4, "Generating Floor END");
+        sendSystemMessage(4, 5, "Generating Floor END");
         endGenerator.generate(origin.up(12).south(LaboratoryLayout.SIZE * 16), rng, world, playerSpawnPoints);
 
-        sendSystemMessage(4, 4, "Final Cleanup");
+        sendSystemMessage(5, 5, "Final Cleanup");
         // Kill ItemEntities left over by the generation
         for (Entity e : world.getEntitiesByClass(ItemEntity.class, genBounds, Objects::nonNull)) {
             e.discard();
@@ -127,11 +167,18 @@ public class MinebreachParty {
 
         assignPlayerRoles();
 
+        nuclearBombBossBar.setVisible(false);
+        nuclearBombBossBar.clearPlayers();
+        nuclearBombBossBar.addPlayers(players);
         for (ServerPlayerEntity player : players) {
             player.changeGameMode(GameMode.ADVENTURE);
             player.addStatusEffect(new StatusEffectInstance(StatusEffects.SATURATION, StatusEffectInstance.INFINITE, 1, true, false));
             player.playSound(SoundEvents.BLOCK_BELL_RESONATE);
         }
+
+        TickScheduler.schedule(120, () -> {
+            playSoundToPlayers(Identifier.of("minebreach:ambient.announcement.start"));
+        });
     }
 
     public boolean addPlayer(ServerPlayerEntity player) {
@@ -206,6 +253,7 @@ public class MinebreachParty {
             }
         }
 
+        nuclearBombBossBar.setVisible(false);
         for (ServerPlayerEntity player : players) {
             player.networkHandler.sendPacket(new SubtitleS2CPacket(subtitle));
             player.networkHandler.sendPacket(new TitleS2CPacket(title));
@@ -270,7 +318,10 @@ public class MinebreachParty {
             case WaitingForPlayers -> {
                 // todo ?
             }
-            case InGame -> checkForPartyEnd();
+            case InGame -> {
+                updateNuclearBomb();
+                checkForPartyEnd();
+            }
             case Ended -> {
                 endTickTimeout--;
                 if (endTickTimeout <= 0) {
@@ -280,9 +331,104 @@ public class MinebreachParty {
         }
     }
 
+    public void explodeNuclearBomb() {
+        if (nuclearBombState == NuclearBombState.Exploded) return;
+
+        nuclearBombBossBar.setName(Text.literal("Nuclear Bomb Detonated"));
+        for (ServerPlayerEntity player : players) {
+            if (player.getBlockY() < 47)
+                player.kill(world);
+        }
+
+        playSoundToPlayers(Identifier.of("minebreach:ambient.nuclear_bomb.explosion"));
+
+        nuclearBombState = NuclearBombState.Exploded;
+    }
+
+    void updateNuclearBomb() {
+        if (nuclearBombState != NuclearBombState.Ticking) return;
+
+        if (nuclearBombTimeout <= 0) explodeNuclearBomb();
+        else nuclearBombTimeout--;
+
+        nuclearBombBossBar.setValue(nuclearBombTimeout / 20);
+    }
+
+    public void startNuclearBomb(ServerPlayerEntity starterPlayer) {
+        if (nuclearBombState != NuclearBombState.Off) {
+            starterPlayer.sendMessage(Text.literal("The Nuclear Bomb is ongoing !"), true);
+            return;
+        }
+        if (!nuclearBombEnabled) {
+            starterPlayer.sendMessage(Text.literal("The Nuclear Bomb is not enabled !"), true);
+            return;
+        }
+        nuclearBombState = NuclearBombState.Ticking;
+
+        Text title = Text.literal("Nuclear Bomb Started").formatted(Formatting.DARK_RED, Formatting.BOLD);
+        Text subtitle = Text.literal("Please exit the building ASAP").formatted(Formatting.BOLD);
+
+        nuclearBombBossBar.setVisible(true);
+        nuclearBombBossBar.setValue(nuclearBombTimeout / 20);
+        for (ServerPlayerEntity player : players) {
+            player.networkHandler.sendPacket(new SubtitleS2CPacket(subtitle));
+            player.networkHandler.sendPacket(new TitleS2CPacket(title));
+        }
+
+        playSoundToPlayers(Identifier.of("minebreach:ambient.nuclear_bomb.start"));
+
+        if (nuclearBombTimeout < 100) {
+            nuclearBombTimeout = 100;
+        }
+
+        starterPlayer.sendMessage(Text.literal("The Nuclear Bomb is now ongoing !"), true);
+    }
+
+    public void playSoundToPlayers(Identifier identifier) {
+        for (ServerPlayerEntity player : players) {
+            Vec3d pos = player.getPos();
+            player.networkHandler.sendPacket(new PlaySoundS2CPacket(RegistryEntry.of(SoundEvent.of(identifier)), SoundCategory.MASTER, pos.getX(), pos.getY(), pos.getZ(), 1f, 1f, 5));
+        }
+    }
+
+    public void playSoundToPlayers(SoundEvent event) {
+        playSoundToPlayers(event.id());
+    }
+
+    public void stopSoundForPlayers(Identifier identifier) {
+        StopSoundS2CPacket stopSoundS2CPacket = new StopSoundS2CPacket(identifier, SoundCategory.MASTER);
+
+        for (ServerPlayerEntity serverPlayerEntity : players) {
+            serverPlayerEntity.networkHandler.sendPacket(stopSoundS2CPacket);
+        }
+    }
+
+    public void stopNuclearBomb() {
+        if (nuclearBombState != NuclearBombState.Ticking) return;
+        nuclearBombState = NuclearBombState.Off;
+
+        Text title = Text.literal("Nuclear Bomb Stopped").formatted(Formatting.DARK_RED, Formatting.BOLD);
+        Text subtitle = Text.literal("Everything is back to normal").formatted(Formatting.BOLD);
+
+        nuclearBombBossBar.setVisible(false);
+        for (ServerPlayerEntity player : players) {
+            player.networkHandler.sendPacket(new SubtitleS2CPacket(subtitle));
+            player.networkHandler.sendPacket(new TitleS2CPacket(title));
+        }
+
+        stopSoundForPlayers(Identifier.of("minebreach:ambient.nuclear_bomb.start"));
+        playSoundToPlayers(SoundEvents.ENTITY_VILLAGER_NO);
+    }
+
     public enum State {
         WaitingForPlayers,
         InGame,
         Ended
+    }
+
+    public enum NuclearBombState {
+        Off,
+        Ticking,
+        Exploded
     }
 }

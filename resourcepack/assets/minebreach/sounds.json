@@ -1,0 +1,26 @@
+{
+  "ambient.nuclear_bomb.start": {
+    "sounds": [
+      {
+        "name": "minebreach:ambient/nuclear_bomb/start",
+        "stream": true
+      }
+    ]
+  },
+  "ambient.nuclear_bomb.explosion": {
+    "sounds": [
+      {
+        "name": "minebreach:ambient/nuclear_bomb/explosion",
+        "stream": false
+      }
+    ]
+  },
+  "ambient.announcement.start": {
+    "sounds": [
+      {
+        "name": "minebreach:ambient/announcement/start",
+        "stream": false
+      }
+    ]
+  }
+}
